@@ -1,42 +1,44 @@
 const mariadb = require('../database/db');
+const controller = {};
 
-async function getEmployees () {
+controller.getEmployees = async (req,res) =>{
     try {
         conn = await mariadb.getConn();
         const rows = await conn.query('SELECT * FROM employees');
         conn.release();
-        return rows;
+        res.json(rows);
     } catch (error) {
         console.log(error);
-        return null;
     }
 }
 
-async function getEmployee(id) {
+controller.getEmployee = async (req,res) => {
+    const { id } = req.params;
     try {   
         let conn = await mariadb.getConn();
         const rows = await conn.query('SELECT * FROM employees where id = ?', [id]);
         conn.release();
-        return rows[0];
+        res.json(rows[0]);
     } catch (error) {
         console.log(error);
-        return null;
     }
 }
 
-async function insertEmployee(name,salary) {
+controller.insertEmployee = async (req,res) => {
+    const { name, salary } = req.body;
     try {
         let conn = await mariadb.getConn();
-        const query = await conn.query('INSERT INTO employees(name, salary) VALUES (?,?)', [name,salary]);
+        await conn.query('INSERT INTO employees(name, salary) VALUES (?,?)', [name,salary]);
         conn.release();
-        return query;
+        res.json({Status: 'Completed'});
     } catch (error) {
         console.log(error);
-        return null;
     }
 }
 
-async function updateEmployee(id,name,salary) {
+controller.updateEmployee = async (req,res) => {
+    const { id } = req.params;
+    const { name, salary } = req.body;
     try {
         let conn = await mariadb.getConn();
         const query = await conn.query(`UPDATE employees 
@@ -44,21 +46,22 @@ async function updateEmployee(id,name,salary) {
                                             salary = ?  
                                             WHERE id = ?`, [name,salary,id]);
         conn.release();
-        return query;
+        res.send(query);
     } catch (error) {
         console.log(error);
     }
 }
 
-async function deleteEmployee (id) {
+controller.deleteEmployee = async (req,res) => {
+    const { id } = req.params; 
     try {
         let conn = await mariadb.getConn();
         const query = await conn.query('DELETE FROM employees WHERE id = ?', [id]);
         conn.release();
-        return query;
+        res.send(query);
     } catch (error) {
         console.log(error);
     }
 }
 
-module.exports = { getEmployees, getEmployee, insertEmployee, deleteEmployee, updateEmployee }
+module.exports = controller;
